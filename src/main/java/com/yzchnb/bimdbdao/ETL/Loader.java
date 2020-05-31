@@ -35,7 +35,7 @@ public class Loader {
             entityNodeRepo.saveAll(pairs.getSecond());
         });
         es.shutdown();
-        while(es.isTerminated()){
+        while(!es.isTerminated()){
             try{
                 System.out.println("Waiting for saveAll finished");
                 Thread.sleep(500);
