@@ -66,4 +66,15 @@ public class ETLController {
         return "Success";
     }
 
+    @GetMapping("/resetLinksId/{batchSize}")
+    public String resetLinksId(@PathVariable("batchSize")int batchSize){
+        try{
+            etlFacade.resetLinksIds(batchSize);
+        }catch (Exception e){
+            e.printStackTrace();
+            return "Failed";
+        }
+        return "Success";
+    }
+
 }

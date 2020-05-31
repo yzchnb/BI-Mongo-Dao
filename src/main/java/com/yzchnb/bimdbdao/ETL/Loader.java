@@ -12,10 +12,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Component
 public class Loader {
@@ -24,21 +21,18 @@ public class Loader {
 
     private ExecutorService es;
 
-    public void loadBatch(Pair<Set<EntityNode>, Set<EntityNode>> pairs){
+    public void loadBatch(Set<EntityNode> nodes){
         if(es == null || es.isTerminated() || es.isShutdown()){
             initES();
         }
         es.submit(() -> {
-            entityNodeRepo.saveAll(pairs.getFirst());
-        });
-        es.submit(() -> {
-            entityNodeRepo.saveAll(pairs.getSecond());
+            entityNodeRepo.saveAll(nodes);
         });
         es.shutdown();
         while(!es.isTerminated()){
             try{
                 System.out.println("Waiting for saveAll finished");
-                Thread.sleep(500);
+                Thread.sleep(1000);
             }catch (InterruptedException e){
                 System.out.println("Interrupted!");
                 return;
@@ -48,13 +42,7 @@ public class Loader {
     }
 
     private void initES(){
-        es = new ThreadPoolExecutor(10,
-                20,
-                60,
-                TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(5),
-                new DefaultManagedAwareThreadFactory(),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+        es = Executors.newFixedThreadPool(1);
     }
 
 }

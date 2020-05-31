@@ -99,11 +99,8 @@ public class EntityNodeMongoClient {
                 EntityNode originNode = origin[copyi];
                 EntityNode found = entityNodeRepo.findOneByName(originNode.getName());
                 if(found != null){
-                    int foundLinksSize = found.getLinks().size();
                     found.addLinks(originNode.getLinks());
-                    if(found.getLinks().size() > foundLinksSize){
-                        exists[copyi] = found;
-                    }
+                    exists[copyi] = found;
                 }else{
                     nonExists[copyi] = originNode;
                 }

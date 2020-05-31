@@ -17,6 +17,10 @@ public class Extractor {
     @Value("${jsonSource}")
     private String source;
 
+    public String getSource() {
+        return source;
+    }
+
     private JSONReader reader;
     private boolean finished = false;
 

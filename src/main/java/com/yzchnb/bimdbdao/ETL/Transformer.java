@@ -23,7 +23,7 @@ public class Transformer {
     @Resource
     private EntityNodeMongoClient entityNodeMongoClient;
 
-    public Pair<Set<EntityNode>, Set<EntityNode>> transformBatch(Set<EntityNode> nodes){
+    public Set<EntityNode> transformBatch(Set<EntityNode> nodes){
         Map<String, EntityNode> nameToEntityNodes = new HashMap<>(nodes.size());
         for (EntityNode node : nodes) {
             nameToEntityNodes.compute(node.getName(), (k, v) -> {
@@ -35,11 +35,6 @@ public class Transformer {
             });
         }
         nodes = new HashSet<>(nameToEntityNodes.values());
-//        for (EntityNode node : nodes) {
-//            for (NodeToRelation link : node.getLinks()) {
-//
-//            }
-//        }
         Pair<Set<EntityNode>, Set<EntityNode>> existsAndNonExistsPair = entityNodeMongoClient.queryExists(nodes);
 
         Set<EntityNode> nonRepeatEntityNodes = existsAndNonExistsPair.getSecond();
@@ -48,7 +43,27 @@ public class Transformer {
             node.setUniqueId(id);
             id++;
         }
-        existsAndNonExistsPair.setSecond(nonRepeatEntityNodes);
-        return existsAndNonExistsPair;
+        nodes.clear();
+        nodes.addAll(existsAndNonExistsPair.getFirst());
+        nodes.addAll(nonRepeatEntityNodes);
+        setLinksUniqueIds(nodes);
+        return nodes;
+    }
+
+    private void setLinksUniqueIds(Set<EntityNode> entityNodes){
+        Map<String, EntityNode> nameToEntityNodes = new HashMap<>(entityNodes.size());
+        for (EntityNode node : entityNodes) {
+            nameToEntityNodes.put(node.getName(), node);
+        }
+        for (EntityNode entityNode : entityNodes) {
+            for (NodeToRelation link : entityNode.getLinks()) {
+                if(link.getUniqueId() == null || link.getUniqueId() == 0){
+                    nameToEntityNodes.computeIfPresent(link.getNode(), (k, v) -> {
+                        link.setUniqueId(v.getUniqueId());
+                        return v;
+                    });
+                }
+            }
+        }
     }
 }

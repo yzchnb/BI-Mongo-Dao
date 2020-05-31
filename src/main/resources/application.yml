@@ -8,5 +8,5 @@ spring:
          uri: mongodb://localhost:27017/BI
 
 
-jsonSource: /Users/purchaser/Desktop/商务智能/result/result3.json
+jsonSource: /Users/purchaser/Desktop/商务智能/result/result8.json
 jsonSourceDir: /Users/purchaser/Desktop/商务智能/result/3-8
