@@ -2,6 +2,7 @@ package com.yzchnb.bimdbdao.dao;
 
 import com.mongodb.bulk.BulkWriteResult;
 import com.yzchnb.bimdbdao.entity.EntityNode;
+import com.yzchnb.bimdbdao.entity.NodeToRelation;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -98,8 +99,11 @@ public class EntityNodeMongoClient {
                 EntityNode originNode = origin[copyi];
                 EntityNode found = entityNodeRepo.findOneByName(originNode.getName());
                 if(found != null){
+                    int foundLinksSize = found.getLinks().size();
                     found.addLinks(originNode.getLinks());
-                    exists[copyi] = found;
+                    if(found.getLinks().size() > foundLinksSize){
+                        exists[copyi] = found;
+                    }
                 }else{
                     nonExists[copyi] = originNode;
                 }

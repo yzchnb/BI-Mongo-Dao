@@ -5,6 +5,7 @@ import com.yzchnb.bimdbdao.dao.EntityNodeMongoClient;
 import com.yzchnb.bimdbdao.dao.EntityNodeRepo;
 import com.yzchnb.bimdbdao.entity.AutoIncreEntity;
 import com.yzchnb.bimdbdao.entity.EntityNode;
+import com.yzchnb.bimdbdao.entity.NodeToRelation;
 import org.springframework.data.domain.Example;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import com.yzchnb.bimdbdao.util.Pair;
@@ -23,9 +24,8 @@ public class Transformer {
     private EntityNodeMongoClient entityNodeMongoClient;
 
     public Pair<Set<EntityNode>, Set<EntityNode>> transformBatch(Set<EntityNode> nodes){
-        Pair<Set<EntityNode>, Set<EntityNode>> existsAndNonExistsPair = entityNodeMongoClient.queryExists(nodes);
         Map<String, EntityNode> nameToEntityNodes = new HashMap<>(nodes.size());
-        for (EntityNode node : existsAndNonExistsPair.getSecond()) {
+        for (EntityNode node : nodes) {
             nameToEntityNodes.compute(node.getName(), (k, v) -> {
                 if(v == null){
                     return node;
@@ -34,7 +34,15 @@ public class Transformer {
                 return v;
             });
         }
-        Set<EntityNode> nonRepeatEntityNodes = new HashSet<>(nameToEntityNodes.values());
+        nodes = new HashSet<>(nameToEntityNodes.values());
+//        for (EntityNode node : nodes) {
+//            for (NodeToRelation link : node.getLinks()) {
+//
+//            }
+//        }
+        Pair<Set<EntityNode>, Set<EntityNode>> existsAndNonExistsPair = entityNodeMongoClient.queryExists(nodes);
+
+        Set<EntityNode> nonRepeatEntityNodes = existsAndNonExistsPair.getSecond();
         int id = autoIncreEntityRepo.getAndSetCurrCount(nonRepeatEntityNodes.size());
         for (EntityNode node : nonRepeatEntityNodes) {
             node.setUniqueId(id);

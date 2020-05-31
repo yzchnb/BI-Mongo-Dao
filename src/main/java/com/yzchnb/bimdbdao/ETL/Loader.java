@@ -25,7 +25,7 @@ public class Loader {
     private ExecutorService es;
 
     public void loadBatch(Pair<Set<EntityNode>, Set<EntityNode>> pairs){
-        if(es == null){
+        if(es == null || es.isTerminated() || es.isShutdown()){
             initES();
         }
         es.submit(() -> {
@@ -41,6 +41,7 @@ public class Loader {
                 Thread.sleep(500);
             }catch (InterruptedException e){
                 System.out.println("Interrupted!");
+                return;
             }
         }
         

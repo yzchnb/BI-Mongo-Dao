@@ -20,10 +20,28 @@ public class QueryController {
     @Resource
     private EntityNodeMongoClient entityNodeMongoClient;
 
-    @GetMapping("/getSingleLinks/{nodeName}")
-    public ResponseFormat getSingleLink(@PathVariable("nodeName")String nodeName){
+    @GetMapping("/getSingleLinksByName/{nodeName}")
+    public ResponseFormat getSingleLinkByName(@PathVariable("nodeName")String nodeName){
         EntityNode node = entityNodeRepo.findOneByName(nodeName);
         return wrap(node);
+    }
+
+    @GetMapping("/getSingleLinksById/{uniqueId}")
+    public ResponseFormat getSingleLinksById(@PathVariable("uniqueId") int uniqueId){
+        EntityNode node = entityNodeRepo.findOneByUniqueId(uniqueId);
+        return wrap(node);
+    }
+
+    @GetMapping("/getEntityNameById/{uniqueId}")
+    public ResponseFormat getEntityNameById(@PathVariable("uniqueId")int uniqueId){
+        EntityNode node = entityNodeRepo.findOneByUniqueId(uniqueId);
+        return wrap(node.getName());
+    }
+
+    @GetMapping("/getEntityIdByName/{nodeName}")
+    public ResponseFormat getEntityNameById(@PathVariable("nodeName")String nodeName){
+        EntityNode node = entityNodeRepo.findOneByName(nodeName);
+        return wrap(node.getUniqueId());
     }
 
     @GetMapping("/getBatch/{start}/{size}")

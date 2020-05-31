@@ -3,6 +3,7 @@ package com.yzchnb.bimdbdao.entity;
 import java.util.Objects;
 
 public class NodeToRelation{
+    private int uniqueId;
     private String node;
     private String relation;
     private int direction;
@@ -11,6 +12,21 @@ public class NodeToRelation{
         this.node = node;
         this.relation = relation;
         this.direction = direction;
+    }
+
+    public NodeToRelation(int uniqueId, String node, String relation, int direction) {
+        this.uniqueId = uniqueId;
+        this.node = node;
+        this.relation = relation;
+        this.direction = direction;
+    }
+
+    public int getUniqueId() {
+        return uniqueId;
+    }
+
+    public void setUniqueId(int uniqueId) {
+        this.uniqueId = uniqueId;
     }
 
     public String getNode() {
