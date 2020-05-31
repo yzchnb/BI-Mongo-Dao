@@ -41,14 +41,14 @@ public class ETLFacade {
 
     public void startETLByDir(String sourceDir, int batchSize){
         File f = new File(sourceDir);
-        String[] files = f.list();
+        File[] files = f.listFiles();
         if(files == null){
             System.out.println("Using Default sourceDir");
             f = new File(this.sourceDir);
-            files = f.list();
+            files = f.listFiles();
         }
-        for (String file : files) {
-            extractor.setSource(file);
+        for (File file : files) {
+            extractor.setSource(file.getAbsolutePath());
             this.startETL(batchSize);
         }
     }
