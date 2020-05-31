@@ -5,7 +5,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 
 public interface EntityNodeRepo extends MongoRepository<EntityNode, String> {
-    EntityNode findByName(String name);
-    EntityNode findByUniqueId(int uniqueId);
-
+    EntityNode findOneByName(String name);
 }

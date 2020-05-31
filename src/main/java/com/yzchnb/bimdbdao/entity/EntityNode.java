@@ -9,9 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import java.util.*;
 
 @Document(collection = "EntityNode")
-@CompoundIndex(
-    name = "nameToLinks", def = "{'name' = 1, 'links.node' = 1}"
-)
+@CompoundIndex(def = "{'name' = 1, 'links.node' = 1}")
 public class EntityNode {
 
     @Id
@@ -45,19 +43,26 @@ public class EntityNode {
         return links;
     }
 
-    public void setLinks(List<String> nodes, List<String> relations) {
+    public void setLinks(List<String> nodes, List<String> relations, List<Integer> directions) {
         assert nodes.size() == relations.size();
         this.links = new HashSet<>();
         for (int i = 0; i < nodes.size(); i++) {
-            links.add(new NodeToRelation(nodes.get(i), relations.get(i)));
+            links.add(new NodeToRelation(nodes.get(i), relations.get(i), directions.get(i)));
         }
     }
 
-    public void addLink(String node, String relation){
+    public void addLinks(Set<NodeToRelation> set){
         if(this.links == null){
             this.links = new HashSet<>();
         }
-        this.links.add(new NodeToRelation(node, relation));
+        this.links.addAll(set);
+    }
+
+    public void addLink(String node, String relation, int direction){
+        if(this.links == null){
+            this.links = new HashSet<>();
+        }
+        this.links.add(new NodeToRelation(node, relation, direction));
     }
 
     public int getUniqueId() {
@@ -68,44 +73,4 @@ public class EntityNode {
         this.uniqueId = uniqueId;
     }
 
-}
-
-class NodeToRelation{
-    private String node;
-    private String relation;
-
-    public NodeToRelation(String node, String relation) {
-        this.node = node;
-        this.relation = relation;
-    }
-
-    public String getNode() {
-        return node;
-    }
-
-    public void setNode(String node) {
-        this.node = node;
-    }
-
-    public String getRelation() {
-        return relation;
-    }
-
-    public void setRelation(String relation) {
-        this.relation = relation;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        NodeToRelation that = (NodeToRelation) o;
-        return node.equals(that.node) &&
-                relation.equals(that.relation);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(node, relation);
-    }
 }

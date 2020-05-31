@@ -8,16 +8,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
-@RequestMapping("/index")
 public class BiMdbDaoApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(BiMdbDaoApplication.class, args);
-    }
-
-    @GetMapping("/test")
-    public String d(){
-        return "Hello";
     }
 
 }

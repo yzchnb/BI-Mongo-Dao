@@ -3,10 +3,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONReader;
 import com.yzchnb.bimdbdao.entity.EntityNode;
+import com.yzchnb.bimdbdao.entity.NodeToRelation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Component
@@ -43,10 +46,18 @@ public class Extractor {
             m.forEach((k, v) -> {
                 JSONArray a = (JSONArray) v;
                 for (Object n : a) {
-                    node.addLink((String)n, k);
+                    node.addLink((String)n, k, 1);
                 }
             });
+            List<EntityNode> reverses = new ArrayList<>(node.getLinks().size());
+            for (NodeToRelation link : node.getLinks()) {
+                EntityNode reversed = new EntityNode();
+                reversed.setName(link.getNode());
+                reversed.addLink(node.getName(), link.getRelation(), -1);
+                reverses.add(reversed);
+            }
             set.add(node);
+            set.addAll(reverses);
         }
         if(!reader.hasNext()){
             reader.endArray();

@@ -1,9 +1,13 @@
 package com.yzchnb.bimdbdao.ETL;
 
 import com.yzchnb.bimdbdao.entity.EntityNode;
+import org.springframework.beans.factory.annotation.Value;
+import com.yzchnb.bimdbdao.util.Pair;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.IOException;
 import java.util.Set;
 
 @Component
@@ -14,6 +18,9 @@ public class ETLFacade {
     private Transformer transformer;
     @Resource
     private Loader loader;
+
+    @Value("${jsonSourceDir}")
+    private String sourceDir;
 
     public void startETL(String source, int batchSize){
         extractor.setSource(source);
@@ -26,10 +33,27 @@ public class ETLFacade {
             if(set == null || set.size() == 0){
                 break;
             }
-            set = transformer.transformBatch(set);
-            System.out.println("Loading Batch " + i + " Batch Size: " + set.size());
-            loader.loadBatch(set);
+            Pair<Set<EntityNode>, Set<EntityNode>> pairs = transformer.transformBatch(set);
+            System.out.println("Loading Batch " + i + " Batch Size: " + (pairs.getSecond().size() + pairs.getFirst().size()));
+            loader.loadBatch(pairs);
         }
+    }
 
+    public void startETLByDir(String sourceDir, int batchSize){
+        File f = new File(sourceDir);
+        String[] files = f.list();
+        if(files == null){
+            System.out.println("Using Default sourceDir");
+            f = new File(this.sourceDir);
+            files = f.list();
+        }
+        for (String file : files) {
+            extractor.setSource(file);
+            this.startETL(batchSize);
+        }
+    }
+
+    public void startETLByDir(int batchSize){
+        startETLByDir(this.sourceDir, batchSize);
     }
 }
