@@ -63,6 +63,7 @@ public class Extractor {
             set.add(node);
             set.addAll(reverses);
         }
+        System.out.println("Extractor read batch from " + source);
         if(!reader.hasNext()){
             reader.endArray();
             reader.close();
@@ -75,5 +76,6 @@ public class Extractor {
     void setSource(String source){
         this.source = source;
         this.finished = false;
+        initData();
     }
 }

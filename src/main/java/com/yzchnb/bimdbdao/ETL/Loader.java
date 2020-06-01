@@ -9,9 +9,7 @@ import org.springframework.scheduling.concurrent.DefaultManagedAwareThreadFactor
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 
 @Component
@@ -21,13 +19,26 @@ public class Loader {
 
     private ExecutorService es;
 
+    private int batch = 10;
+
     public void loadBatch(Set<EntityNode> nodes){
         if(es == null || es.isTerminated() || es.isShutdown()){
             initES();
         }
-        es.submit(() -> {
-            entityNodeRepo.saveAll(nodes);
-        });
+        List<Set<EntityNode>> batches = new ArrayList<>(batch + 1);
+        for (int i = 0; i < batch + 1; i++) {
+            batches.add(new HashSet<>(nodes.size() / batch));
+        }
+        Iterator<EntityNode> iter = nodes.iterator();
+        for (int i = 0; i < nodes.size(); i++) {
+            int batchIndex = i / (nodes.size() / batch);
+            batches.get(batchIndex).add(iter.next());
+        }
+        for (Set<EntityNode> entityNodes : batches) {
+            es.submit(() -> {
+                entityNodeRepo.saveAll(entityNodes);
+            });
+        }
         es.shutdown();
         while(!es.isTerminated()){
             try{
@@ -42,7 +53,7 @@ public class Loader {
     }
 
     private void initES(){
-        es = Executors.newFixedThreadPool(1);
+        es = Executors.newFixedThreadPool(batch + 1);
     }
 
 }

@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 @Component
 public class ETLFacade {
@@ -57,7 +58,12 @@ public class ETLFacade {
             f = new File(this.sourceDir);
             files = f.listFiles();
         }
-        for (File file : files) {
+        if(files == null){
+            System.out.println("Files is null!");
+            return;
+        }
+        List<File> fileList = Arrays.stream(files).filter((g) -> g.getName().endsWith(".json")).sorted(Comparator.comparing(File::getName)).collect(Collectors.toList());
+        for (File file : fileList) {
             extractor.setSource(file.getAbsolutePath());
             this.startETL(batchSize);
         }
