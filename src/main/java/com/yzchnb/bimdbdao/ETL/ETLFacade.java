@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Component
@@ -64,8 +65,12 @@ public class ETLFacade {
         }
         List<File> fileList = Arrays.stream(files).filter((g) -> g.getName().endsWith(".json")).sorted(Comparator.comparing(File::getName)).collect(Collectors.toList());
         for (File file : fileList) {
-            extractor.setSource(file.getAbsolutePath());
-            this.startETL(batchSize);
+            try{
+                extractor.setSource(file.getAbsolutePath());
+                this.startETL(batchSize);
+            }catch (Exception e){
+                System.out.println("Encountered error while ETLing " + file.getAbsolutePath());
+            }
         }
     }
 
@@ -115,6 +120,7 @@ public class ETLFacade {
         while(!es.isTerminated()){
             try{
                 Thread.sleep(1000);
+
                 System.out.println("Waiting for resetting jobs");
             }catch (InterruptedException e){
                 System.out.println("Interrupted!");
