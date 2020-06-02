@@ -2,10 +2,13 @@ package com.yzchnb.bimdbdao.ETL;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONReader;
+import com.yzchnb.bimdbdao.config.Logger;
 import com.yzchnb.bimdbdao.entity.EntityNode;
 import com.yzchnb.bimdbdao.entity.NodeToRelation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -16,6 +19,9 @@ import java.util.Set;
 public class Extractor {
     @Value("${jsonSource}")
     private String source;
+
+    @Resource
+    private Logger logger;
 
     public String getSource() {
         return source;
@@ -32,6 +38,7 @@ public class Extractor {
             e.printStackTrace();
             System.exit(-1);
         }
+        logger.info("Start Reading " + source);
     }
 
     Set<EntityNode> getBatch(int batchSize){
@@ -63,8 +70,10 @@ public class Extractor {
             set.add(node);
             set.addAll(reverses);
         }
+        logger.info("Read Batch " + set.size() + " from " + source);
         System.out.println("Extractor read batch from " + source);
         if(!reader.hasNext()){
+            logger.info("End for file " + source);
             reader.endArray();
             reader.close();
             reader = null;

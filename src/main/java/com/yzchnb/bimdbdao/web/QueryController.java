@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/query")
@@ -48,6 +50,14 @@ public class QueryController {
     public ResponseFormat getBatch(@PathVariable("start")int start, @PathVariable("size") int size){
         return wrap(entityNodeMongoClient.getBatch(start, size));
     }
+
+    @GetMapping("/getBatchIds/{start}/{size}")
+    public ResponseFormat getBatchIds(@PathVariable("start")int start, @PathVariable("size") int size){
+        List<EntityNode> nodes = entityNodeMongoClient.getBatch(start, size);
+        List<Integer> nodesIds = nodes.stream().map(EntityNode::getUniqueId).collect(Collectors.toList());
+        return wrap(nodesIds);
+    }
+
 
     @GetMapping("/getMaxUniqueId")
     public ResponseFormat getMaxUniqueId(){

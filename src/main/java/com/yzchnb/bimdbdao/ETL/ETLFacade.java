@@ -33,12 +33,18 @@ public class ETLFacade {
     @Value("${jsonSourceDir}")
     private String sourceDir;
 
-    public void startETL(String source, int batchSize){
+    public void startETL(String source, int batchSize) throws Exception{
         extractor.setSource(source);
         this.startETL(batchSize);
     }
 
-    public void startETL(int batchSize){
+    private boolean ETLing = false;
+
+    public void startETL(int batchSize) throws Exception{
+        if(ETLing){
+            throw new Exception("ETL is preceding");
+        }
+        ETLing = true;
         for(int i = 0;; i++){
             Set<EntityNode> set = extractor.getBatch(batchSize);
             if(set == null || set.size() == 0){
@@ -48,6 +54,7 @@ public class ETLFacade {
             System.out.println("Loading Batch " + i + " Batch Size: " + nodes.size());
             loader.loadBatch(nodes);
         }
+        ETLing = false;
         System.out.println("Finshed ETL for file: " + extractor.getSource());
     }
 

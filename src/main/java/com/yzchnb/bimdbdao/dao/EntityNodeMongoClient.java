@@ -60,7 +60,8 @@ public class EntityNodeMongoClient {
         query.addCriteria(Criteria.where("uniqueId").gte(startUniqueId).lt(startUniqueId + size));
         query.with(Sort.by(Sort.Order.asc("uniqueId")));
         query.limit(size);
-        return mongoTemplate.find(query, EntityNode.class, "EntityNode");
+        List<EntityNode> l = mongoTemplate.find(query, EntityNode.class, "EntityNode");
+        return l;
     }
 
     public int getMaxUniqueId(){
