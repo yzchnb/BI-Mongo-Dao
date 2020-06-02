@@ -49,11 +49,13 @@ public class Extractor {
             initData();
         }
         Set<EntityNode> set = new HashSet<>();
+        int objCount = 0;
         for(int i = 0; i < batchSize && reader.hasNext(); i++){
             JSONObject o = reader.readObject(JSONObject.class);
             EntityNode node = new EntityNode();
             node.setName(o.getString("name"));
             JSONObject m = o.getJSONObject("properties");
+            objCount++;
             m.forEach((k, v) -> {
                 JSONArray a = (JSONArray) v;
                 for (Object n : a) {
@@ -70,7 +72,7 @@ public class Extractor {
             set.add(node);
             set.addAll(reverses);
         }
-        logger.info("Read Batch " + set.size() + " from " + source);
+        logger.info("Read " + objCount + " JsonObjects from " + source);
         System.out.println("Extractor read batch from " + source);
         if(!reader.hasNext()){
             logger.info("End for file " + source);
