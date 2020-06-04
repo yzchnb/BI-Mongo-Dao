@@ -1,11 +1,17 @@
 package com.yzchnb.bimdbdao.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
 import java.util.Objects;
 
 public class NodeToRelation{
+    @JSONField(name = "u")
     private Integer uniqueId = null;
+    @JSONField(name = "n")
     private String node;
+    @JSONField(name = "r")
     private String relation;
+    @JSONField(name = "d")
     private int direction;
 
     public NodeToRelation() { }

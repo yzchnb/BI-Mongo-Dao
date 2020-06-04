@@ -1,5 +1,6 @@
 package com.yzchnb.bimdbdao.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;

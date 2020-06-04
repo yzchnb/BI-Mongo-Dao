@@ -25,15 +25,15 @@ public class Transformer {
 
     public Set<EntityNode> transformBatch(Set<EntityNode> nodes){
         Map<String, EntityNode> nameToEntityNodes = new HashMap<>(nodes.size());
-        for (EntityNode node : nodes) {
+        nodes.forEach(node ->
             nameToEntityNodes.compute(node.getName(), (k, v) -> {
                 if(v == null){
                     return node;
                 }
                 v.addLinks(node.getLinks());
                 return v;
-            });
-        }
+            })
+        );
         nodes = new HashSet<>(nameToEntityNodes.values());
         Pair<Set<EntityNode>, Set<EntityNode>> existsAndNonExistsPair = entityNodeMongoClient.queryExists(nodes);
 
