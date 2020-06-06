@@ -16,7 +16,6 @@ import java.util.List;
 @Configuration
 public class FastJsonConfiguration {
 
-
     @Bean
     public HttpMessageConverters fastJsonMessageConverters() {
         List<HttpMessageConverter<?>> converters = new ArrayList<>();

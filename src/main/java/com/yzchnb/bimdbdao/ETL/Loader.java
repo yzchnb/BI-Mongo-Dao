@@ -22,16 +22,19 @@ public class Loader {
     private int batch = 10;
 
     public void loadBatch(Set<EntityNode> nodes){
+        if(nodes.size() == 0){
+            return;
+        }
         if(es == null || es.isTerminated() || es.isShutdown()){
             initES();
         }
         List<Set<EntityNode>> batches = new ArrayList<>(batch + 1);
-        for (int i = 0; i < batch + 1; i++) {
-            batches.add(new HashSet<>(nodes.size() / batch));
-        }
         Iterator<EntityNode> iter = nodes.iterator();
         for (int i = 0; i < nodes.size(); i++) {
             int batchIndex = i / (nodes.size() / batch);
+            if(batchIndex == batches.size()){
+                batches.add(new HashSet<>(nodes.size() / batch));
+            }
             batches.get(batchIndex).add(iter.next());
         }
         for (Set<EntityNode> entityNodes : batches) {

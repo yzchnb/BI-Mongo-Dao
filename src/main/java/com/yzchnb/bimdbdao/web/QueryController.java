@@ -36,14 +36,12 @@ public class QueryController {
 
     @GetMapping("/getEntityNameById/{uniqueId}")
     public ResponseFormat getEntityNameById(@PathVariable("uniqueId")int uniqueId){
-        EntityNode node = entityNodeRepo.findOneByUniqueId(uniqueId);
-        return wrap(node.getName());
+        return wrap(entityNodeMongoClient.getEntityNameById(uniqueId));
     }
 
     @GetMapping("/getEntityIdByName/{nodeName}")
-    public ResponseFormat getEntityNameById(@PathVariable("nodeName")String nodeName){
-        EntityNode node = entityNodeRepo.findOneByName(nodeName);
-        return wrap(node.getUniqueId());
+    public ResponseFormat getEntityIdByName(@PathVariable("nodeName")String nodeName){
+        return wrap(entityNodeMongoClient.getEntityIdByName(nodeName));
     }
 
     @GetMapping("/getBatch/{start}/{size}")

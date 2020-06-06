@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.index.Index;
+import org.springframework.data.mongodb.core.query.Collation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -62,6 +63,28 @@ public class EntityNodeMongoClient {
         query.limit(size);
         List<EntityNode> l = mongoTemplate.find(query, EntityNode.class, "EntityNode");
         return l;
+    }
+
+    public String getEntityNameById(int uniqueId){
+        Query q = new Query();
+        q.addCriteria(Criteria.where("uniqueId").is(uniqueId));
+        q.fields().include("name");
+        EntityNode node = mongoTemplate.findOne(q, EntityNode.class, "EntityNode");
+        if(node != null){
+            return node.getName();
+        }
+        return null;
+    }
+
+    public Integer getEntityIdByName(String name){
+        Query q = new Query();
+        q.addCriteria(Criteria.where("name").is(name));
+        q.fields().include("uniqueId");
+        EntityNode node = mongoTemplate.findOne(q, EntityNode.class, "EntityNode");
+        if(node != null){
+            return node.getUniqueId();
+        }
+        return null;
     }
 
     public int getMaxUniqueId(){
