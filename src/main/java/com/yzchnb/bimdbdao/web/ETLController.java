@@ -25,7 +25,7 @@ public class ETLController {
     }
 
     @GetMapping("/startETL/{batchSize}")
-    public String startETL(@PathVariable("batchSize")int batchSize, @PathParam("source") String source){
+    public String startETL(@PathVariable("batchSize")int batchSize, @RequestBody String source){
         try{
             batchSize = batchSize > 0 ? batchSize : 50;
             if(source == null){
@@ -35,7 +35,7 @@ public class ETLController {
                 if(f.exists()){
                     etlFacade.startETL(source, batchSize);
                 }else{
-                    etlFacade.startETL(batchSize);
+                    throw new Exception("source " + source + " doesn't exist.");
                 }
             }
         }catch (Exception e){
@@ -46,7 +46,7 @@ public class ETLController {
     }
 
     @GetMapping("/startETLByDir/{batchSize}")
-    public String startETLByDir(@PathVariable("batchSize")int batchSize, @PathParam("source") String source){
+    public String startETLByDir(@PathVariable("batchSize")int batchSize, @RequestBody String source){
         try{
             batchSize = batchSize > 0 ? batchSize : 50;
             if(source == null){
@@ -56,7 +56,7 @@ public class ETLController {
                 if(f.exists() && f.isDirectory() && f.list() != null){
                     etlFacade.startETLByDir(source, batchSize);
                 }else{
-                    etlFacade.startETLByDir(batchSize);
+                    throw new Exception("source " + source + " doesn't exist.");
                 }
             }
         }catch (Exception e){
