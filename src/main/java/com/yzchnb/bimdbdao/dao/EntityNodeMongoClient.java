@@ -97,50 +97,25 @@ public class EntityNodeMongoClient {
         return entityNode.getUniqueId();
     }
 
-    private ExecutorService es = null;
 
-    private void initES(){
-        es = new ThreadPoolExecutor(10,
-                20,
-                60,
-                TimeUnit.SECONDS,
-                new LinkedBlockingQueue<>(5),
-                new DefaultManagedAwareThreadFactory(),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+    public List<EntityNode> queryBatchByIds(Collection<Integer> ids){
+        Query q = new Query();
+        q.addCriteria(Criteria.where("uniqueId").in(ids));
+        q.fields().include("name").include("uniqueId");
+        return mongoTemplate.find(q, EntityNode.class, "EntityNode");
+    }
+
+    public List<EntityNode> queryBatchByNames(Collection<String> names){
+        Query q = new Query();
+        q.addCriteria(Criteria.where("name").in(names));
+        return mongoTemplate.find(q, EntityNode.class, "EntityNode");
     }
 
     public Pair<Set<EntityNode>, Set<EntityNode>> queryExists(Set<EntityNode> nodes){
-        if(es == null || es.isShutdown() || es.isTerminated()){
-            initES();
-        }
-        EntityNode[] origin = new EntityNode[nodes.size()];
-        nodes.toArray(origin);
-        EntityNode[] exists = new EntityNode[nodes.size()];
-        EntityNode[] nonExists = new EntityNode[nodes.size()];
-        for (int i = 0; i < origin.length; i++) {
-            int copyi = i;
-            es.submit(() -> {
-                EntityNode originNode = origin[copyi];
-                EntityNode found = entityNodeRepo.findOneByName(originNode.getName());
-                if(found != null){
-                    found.addLinks(originNode.getLinks());
-                    exists[copyi] = found;
-                }else{
-                    nonExists[copyi] = originNode;
-                }
-            });
-        }
-        es.shutdown();
-        while(!es.isTerminated()){
-            try{
-                System.out.println("Waiting for query tasks to be done");
-                Thread.sleep(500);
-            }catch (InterruptedException e){
-                System.out.println("Interrupted!");
-            }
-        }
-        Set<EntityNode> existsSet = Arrays.stream(exists).filter(Objects::nonNull).collect(Collectors.toSet());
-        Set<EntityNode> nonExistsSet = Arrays.stream(nonExists).filter(Objects::nonNull).collect(Collectors.toSet());
+        List<String> names = nodes.stream().map(EntityNode::getName).collect(Collectors.toList());
+        Set<EntityNode> existsSet = new HashSet<>(queryBatchByNames(names));
+        Set<String> existsNames = existsSet.stream().map(EntityNode::getName).collect(Collectors.toSet());
+        Set<EntityNode> nonExistsSet = nodes.stream().filter(n -> !existsNames.contains(n.getName())).collect(Collectors.toSet());
         return new Pair<>(existsSet, nonExistsSet);
     }
 

@@ -63,12 +63,18 @@ public class Extractor {
                 }
             });
             List<EntityNode> reverses = new ArrayList<>(node.getLinks().size());
-            for (NodeToRelation link : node.getLinks()) {
+            node.getLinks().forEach(link -> {
                 EntityNode reversed = new EntityNode();
                 reversed.setName(link.getNode());
                 reversed.addLink(node.getName(), link.getRelation(), -1);
                 reverses.add(reversed);
-            }
+            });
+//            for (NodeToRelation link : node.getLinks()) {
+//                EntityNode reversed = new EntityNode();
+//                reversed.setName(link.getNode());
+//                reversed.addLink(node.getName(), link.getRelation(), -1);
+//                reverses.add(reversed);
+//            }
             set.add(node);
             set.addAll(reverses);
         }

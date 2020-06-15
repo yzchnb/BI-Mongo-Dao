@@ -25,7 +25,7 @@ public class ETLController {
     }
 
     @GetMapping("/startETL/{batchSize}")
-    public String startETL(@PathVariable("batchSize")int batchSize, @RequestBody String source){
+    public String startETL(@PathVariable("batchSize")int batchSize, @RequestBody(required = false) String source){
         try{
             batchSize = batchSize > 0 ? batchSize : 50;
             if(source == null){
@@ -46,7 +46,7 @@ public class ETLController {
     }
 
     @GetMapping("/startETLByDir/{batchSize}")
-    public String startETLByDir(@PathVariable("batchSize")int batchSize, @RequestBody String source){
+    public String startETLByDir(@PathVariable("batchSize")int batchSize, @RequestBody(required = false) String source){
         try{
             batchSize = batchSize > 0 ? batchSize : 50;
             if(source == null){

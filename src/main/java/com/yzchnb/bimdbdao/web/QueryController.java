@@ -5,10 +5,8 @@ import com.yzchnb.bimdbdao.config.ResponseFormat;
 import com.yzchnb.bimdbdao.dao.EntityNodeMongoClient;
 import com.yzchnb.bimdbdao.dao.EntityNodeRepo;
 import com.yzchnb.bimdbdao.entity.EntityNode;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,11 +47,9 @@ public class QueryController {
         return wrap(entityNodeMongoClient.getBatch(start, size));
     }
 
-    @GetMapping("/getBatchIds/{start}/{size}")
-    public ResponseFormat getBatchIds(@PathVariable("start")int start, @PathVariable("size") int size){
-        List<EntityNode> nodes = entityNodeMongoClient.getBatch(start, size);
-        List<Integer> nodesIds = nodes.stream().map(EntityNode::getUniqueId).collect(Collectors.toList());
-        return wrap(nodesIds);
+    @GetMapping("/getBatchNamesByIds")
+    public ResponseFormat getBatchNamesByIds(@RequestBody List<Integer> ids){
+        return wrap(entityNodeMongoClient.queryBatchByIds(ids));
     }
 
 
