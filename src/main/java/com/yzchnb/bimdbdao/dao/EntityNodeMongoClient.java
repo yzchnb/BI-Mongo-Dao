@@ -159,4 +159,26 @@ public class EntityNodeMongoClient {
         return relations;
     }
 
+
+    public EntityNode getSingleLinksByIdPageable(Integer id, int startFrom, int limit){
+        List<AggregationOperation> operations = new ArrayList<>();
+        operations.add(Aggregation.match(Criteria.where("uniqueId").is(id)));
+        operations.add(Aggregation.unwind("links"));
+        Sort.by(Sort.Direction.ASC, "links.uniqueId");
+        operations.add(Aggregation.sort(Sort.by(Sort.Direction.ASC, "links.uniqueId")));
+        operations.add(Aggregation.skip(startFrom));
+        operations.add(Aggregation.limit(limit));
+
+        operations.add(Aggregation.group("uniqueId")
+                .first("uniqueId").as("uniqueId")
+                .push("links").as("links"));
+        Aggregation aggregation = Aggregation.newAggregation(operations);
+        AggregationResults<EntityNode> results = mongoTemplate.aggregate(aggregation, "EntityNode", EntityNode.class);
+        List<EntityNode> list = results.getMappedResults();
+        if(list.size() == 1){
+            return list.get(0);
+        }
+        return null;
+    }
+
 }

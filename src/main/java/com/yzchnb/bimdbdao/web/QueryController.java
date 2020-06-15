@@ -58,6 +58,18 @@ public class QueryController {
         return entityNodeMongoClient.queryBatchRelations(pairs);
     }
 
+    @GetMapping("/getSingleLinksByNamePageable/{nodeName}/{startFrom}/{limit}")
+    public EntityNode getSingleLinkByNamePageable(@PathVariable("nodeName")String nodeName, @PathVariable("startFrom")int startFrom, @PathVariable("limit")int limit){
+        Integer id = getEntityIdByName(nodeName);
+        return entityNodeMongoClient.getSingleLinksByIdPageable(id, startFrom, limit);
+    }
+
+    @GetMapping("/getSingleLinksByIdPageable/{uniqueId}/{startFrom}/{limit}")
+    public EntityNode getSingleLinksByIdPageable(@PathVariable("uniqueId") int uniqueId, @PathVariable("startFrom")int startFrom, @PathVariable("limit")int limit){
+        return entityNodeMongoClient.getSingleLinksByIdPageable(uniqueId, startFrom, limit);
+    }
+
+
 
     @GetMapping("/getMaxUniqueId")
     public Integer getMaxUniqueId(){
