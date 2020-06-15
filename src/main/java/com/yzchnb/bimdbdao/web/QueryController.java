@@ -5,10 +5,13 @@ import com.yzchnb.bimdbdao.config.ResponseFormat;
 import com.yzchnb.bimdbdao.dao.EntityNodeMongoClient;
 import com.yzchnb.bimdbdao.dao.EntityNodeRepo;
 import com.yzchnb.bimdbdao.entity.EntityNode;
+import com.yzchnb.bimdbdao.entity.RelationById;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -21,41 +24,44 @@ public class QueryController {
     private EntityNodeMongoClient entityNodeMongoClient;
 
     @GetMapping("/getSingleLinksByName/{nodeName}")
-    public ResponseFormat getSingleLinkByName(@PathVariable("nodeName")String nodeName){
-        EntityNode node = entityNodeRepo.findOneByName(nodeName);
-        return wrap(node);
+    public EntityNode getSingleLinkByName(@PathVariable("nodeName")String nodeName){
+        return entityNodeRepo.findOneByName(nodeName);
     }
 
     @GetMapping("/getSingleLinksById/{uniqueId}")
-    public ResponseFormat getSingleLinksById(@PathVariable("uniqueId") int uniqueId){
-        EntityNode node = entityNodeRepo.findOneByUniqueId(uniqueId);
-        return wrap(node);
+    public EntityNode getSingleLinksById(@PathVariable("uniqueId") int uniqueId){
+        return entityNodeRepo.findOneByUniqueId(uniqueId);
     }
 
     @GetMapping("/getEntityNameById/{uniqueId}")
-    public ResponseFormat getEntityNameById(@PathVariable("uniqueId")int uniqueId){
-        return wrap(entityNodeMongoClient.getEntityNameById(uniqueId));
+    public String getEntityNameById(@PathVariable("uniqueId")int uniqueId){
+        return entityNodeMongoClient.getEntityNameById(uniqueId);
     }
 
     @GetMapping("/getEntityIdByName/{nodeName}")
-    public ResponseFormat getEntityIdByName(@PathVariable("nodeName")String nodeName){
-        return wrap(entityNodeMongoClient.getEntityIdByName(nodeName));
+    public Integer getEntityIdByName(@PathVariable("nodeName")String nodeName){
+        return entityNodeMongoClient.getEntityIdByName(nodeName);
     }
 
     @GetMapping("/getBatch/{start}/{size}")
-    public ResponseFormat getBatch(@PathVariable("start")int start, @PathVariable("size") int size){
-        return wrap(entityNodeMongoClient.getBatch(start, size));
+    public List<EntityNode> getBatch(@PathVariable("start")int start, @PathVariable("size") int size){
+        return entityNodeMongoClient.getBatch(start, size);
     }
 
-    @GetMapping("/getBatchNamesByIds")
-    public ResponseFormat getBatchNamesByIds(@RequestBody List<Integer> ids){
-        return wrap(entityNodeMongoClient.queryBatchByIds(ids));
+    @PostMapping("/getBatchNamesByIds")
+    public List<EntityNode> getBatchNamesByIds(@RequestBody List<Integer> ids){
+        return entityNodeMongoClient.queryBatchByIds(ids);
+    }
+
+    @PostMapping("/getBatchRelations")
+    public Map<Integer, Set<RelationById>> getBatchRelations(@RequestBody Map<Integer, List<Integer>> pairs){
+        return entityNodeMongoClient.queryBatchRelations(pairs);
     }
 
 
     @GetMapping("/getMaxUniqueId")
-    public ResponseFormat getMaxUniqueId(){
-        return wrap(entityNodeMongoClient.getMaxUniqueId());
+    public Integer getMaxUniqueId(){
+        return entityNodeMongoClient.getMaxUniqueId();
     }
 
     private ResponseFormat wrap(Object o){

@@ -11,9 +11,11 @@ import java.util.*;
 
 @Document(collection = "EntityNode")
 @CompoundIndex(def = "{'name' = 1, 'links.node' = 1}")
+@CompoundIndex(def = "{'uniqueId' = 1, 'links.uniqueId' = 1}")
 public class EntityNode {
 
     @Id
+    @JSONField(deserialize = false)
     private String _id;
     @Field
     @Indexed

@@ -3,7 +3,9 @@ server:
   port: 6791
 
 spring:
-    data:
+  application:
+    name: MongoDAO
+  data:
       mongodb:
          uri: mongodb://localhost:27017/BI
 
@@ -12,7 +14,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     serviceUrl:
-      defaultZone: http://localhost:8080/eureka/
+      defaultZone: http://localhost:9090/eureka/
 
 
 jsonSource: /Users/purchaser/Desktop/商务智能/result/result9.json

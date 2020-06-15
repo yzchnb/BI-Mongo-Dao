@@ -1,34 +1,25 @@
 package com.yzchnb.bimdbdao.dao;
 
-import com.mongodb.bulk.BulkWriteResult;
 import com.yzchnb.bimdbdao.entity.EntityNode;
-import com.yzchnb.bimdbdao.entity.NodeToRelation;
+import com.yzchnb.bimdbdao.entity.RelationById;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.index.Index;
-import org.springframework.data.mongodb.core.query.Collation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
-import org.springframework.data.mongodb.core.query.Update;
 import com.yzchnb.bimdbdao.util.Pair;
-import org.springframework.scheduling.concurrent.DefaultManagedAwareThreadFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Component
 public class EntityNodeMongoClient {
-
-    @Resource
-    private EntityNodeRepo entityNodeRepo;
 
     @PostConstruct
     public void init(){
@@ -45,11 +36,16 @@ public class EntityNodeMongoClient {
         Index indexOnUniqueId = new Index();
         indexOnUniqueId.on("uniqueId", Sort.Direction.ASC);
         indexOnUniqueId.unique();
+        Index indexOnIdAndNodeId = new Index();
+        indexOnIdAndNodeId.on("uniqueId", Sort.Direction.ASC);
+        indexOnIdAndNodeId.on("links.uniqueId", Sort.Direction.ASC);
         String res = mongoTemplate.indexOps("EntityNode").ensureIndex(indexOnName);
         System.out.println(res);
         res = mongoTemplate.indexOps("EntityNode").ensureIndex(indexOnNameAndNode);
         System.out.println(res);
         res = mongoTemplate.indexOps("EntityNode").ensureIndex(indexOnUniqueId);
+        System.out.println(res);
+        res = mongoTemplate.indexOps("EntityNode").ensureIndex(indexOnIdAndNodeId);
         System.out.println(res);
     }
 
@@ -102,13 +98,17 @@ public class EntityNodeMongoClient {
         Query q = new Query();
         q.addCriteria(Criteria.where("uniqueId").in(ids));
         q.fields().include("name").include("uniqueId");
-        return mongoTemplate.find(q, EntityNode.class, "EntityNode");
+        List<EntityNode> list = mongoTemplate.find(q, EntityNode.class, "EntityNode");
+        list.forEach(l -> l.set_id(null));
+        return list;
     }
 
     public List<EntityNode> queryBatchByNames(Collection<String> names){
         Query q = new Query();
         q.addCriteria(Criteria.where("name").in(names));
-        return mongoTemplate.find(q, EntityNode.class, "EntityNode");
+        List<EntityNode> list = mongoTemplate.find(q, EntityNode.class, "EntityNode");
+        list.forEach(l -> l.set_id(null));
+        return list;
     }
 
     public Pair<Set<EntityNode>, Set<EntityNode>> queryExists(Set<EntityNode> nodes){
@@ -117,6 +117,46 @@ public class EntityNodeMongoClient {
         Set<String> existsNames = existsSet.stream().map(EntityNode::getName).collect(Collectors.toSet());
         Set<EntityNode> nonExistsSet = nodes.stream().filter(n -> !existsNames.contains(n.getName())).collect(Collectors.toSet());
         return new Pair<>(existsSet, nonExistsSet);
+    }
+
+    public Map<Integer, Set<RelationById>> queryBatchRelations(Map<Integer, List<Integer>> pairs){
+        Map<Integer, Set<RelationById>> relations = new HashMap<>(32);
+        pairs.forEach((left, links) -> {
+            List<AggregationOperation> operations = new ArrayList<>();
+            operations.add(Aggregation.match(Criteria.where("uniqueId").is(left)));
+            operations.add(Aggregation.unwind("links"));
+            operations.add(Aggregation.match(Criteria.where("links.uniqueId").in(links)));
+
+            operations.add(Aggregation.group("uniqueId")
+                    .first("uniqueId").as("uniqueId")
+                    .push("links").as("links"));
+            Aggregation aggregation = Aggregation.newAggregation(operations);
+            AggregationResults<EntityNode> results = mongoTemplate.aggregate(aggregation, "EntityNode", EntityNode.class);
+            List<EntityNode> list = results.getMappedResults();
+            if(list.size() == 1){
+                EntityNode l = list.get(0);
+                l.getLinks().forEach(link -> {
+                    RelationById r = new RelationById();
+                    int startId, endId;
+                    if(link.getDirection() == 1){
+                        startId = l.getUniqueId(); endId = link.getUniqueId();
+                    }else{
+                        endId = l.getUniqueId(); startId = link.getUniqueId();
+                    }
+                    r.setStartUniqueId(startId);
+                    r.setRelation(link.getRelation());
+                    r.setEndUniqueId(endId);
+                    relations.compute(l.getUniqueId(), (k, v) -> {
+                        if(v == null){
+                            v = new HashSet<>();
+                        }
+                        v.add(r);
+                        return v;
+                    });
+                });
+            }
+        });
+        return relations;
     }
 
 }
