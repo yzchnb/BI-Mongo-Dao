@@ -1,8 +1,11 @@
 package com.yzchnb.bimdbdao.dao;
 
+import com.mongodb.bulk.BulkWriteResult;
 import com.yzchnb.bimdbdao.entity.EntityNode;
+import com.yzchnb.bimdbdao.entity.NodeToRelation;
 import com.yzchnb.bimdbdao.entity.RelationById;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
@@ -11,6 +14,7 @@ import org.springframework.data.mongodb.core.index.Index;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import com.yzchnb.bimdbdao.util.Pair;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -97,26 +101,37 @@ public class EntityNodeMongoClient {
     public List<EntityNode> queryBatchByIds(Collection<Integer> ids){
         Query q = new Query();
         q.addCriteria(Criteria.where("uniqueId").in(ids));
-        q.fields().include("name").include("uniqueId");
+        q.fields().include("name").exclude("links").exclude("_id");
         List<EntityNode> list = mongoTemplate.find(q, EntityNode.class, "EntityNode");
         list.forEach(l -> l.set_id(null));
         return list;
     }
 
-    public List<EntityNode> queryBatchByNames(Collection<String> names, boolean need_id){
+    public List<EntityNode> queryBatchIfExistByNames(Collection<String> names){
         Query q = new Query();
         q.addCriteria(Criteria.where("name").in(names));
-        q.fields().include("name").include("uniqueId").include("links");
+        q.fields().exclude("links").exclude("_id");
         List<EntityNode> list = mongoTemplate.find(q, EntityNode.class, "EntityNode");
-        if(!need_id){
-            list.forEach(l -> l.set_id(null));
-        }
         return list;
+    }
+
+    public int pushLinksInExistedLinks(Set<EntityNode> nodes){
+        BulkOperations bops = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, "EntityNode");
+        List<org.springframework.data.util.Pair<Query, Update>> ops = new ArrayList<>(nodes.size());
+        nodes.forEach((n) -> {
+            Query q = new Query().addCriteria(Criteria.where("uniqueId").is(n.getUniqueId()));
+            Update u = new Update();
+            u.addToSet("links").each(n.getLinks());
+            ops.add(org.springframework.data.util.Pair.of(q, u));
+        });
+        bops.updateMulti(ops);
+        BulkWriteResult res = bops.execute();
+        return res.getModifiedCount();
     }
 
     public Pair<Set<EntityNode>, Set<EntityNode>> queryExists(Set<EntityNode> nodes){
         List<String> names = nodes.stream().map(EntityNode::getName).collect(Collectors.toList());
-        Set<EntityNode> existsSet = new HashSet<>(queryBatchByNames(names, true));
+        Set<EntityNode> existsSet = new HashSet<>(queryBatchIfExistByNames(names));
         Set<String> existsNames = existsSet.stream().map(EntityNode::getName).collect(Collectors.toSet());
         Set<EntityNode> nonExistsSet = nodes.stream().filter(n -> !existsNames.contains(n.getName())).collect(Collectors.toSet());
         return new Pair<>(existsSet, nonExistsSet);

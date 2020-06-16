@@ -50,9 +50,9 @@ public class ETLFacade {
             if(set == null || set.size() == 0){
                 break;
             }
-            Set<EntityNode> nodes = transformer.transformBatch(set);
-            System.out.println("Loading Batch " + i + " Batch Size: " + nodes.size());
-            loader.loadBatch(nodes);
+            Pair<Set<EntityNode>, Set<EntityNode>> pair = transformer.transformBatch(set);
+            System.out.println("Loading Batch " + i + " Non Existed size :" + pair.getSecond().size() + " Existed size:" + pair.getFirst().size());
+            loader.loadBatch(pair);
         }
         ETLing = false;
         System.out.println("Finshed ETL for file: " + extractor.getSource());

@@ -23,7 +23,7 @@ public class Transformer {
     @Resource
     private EntityNodeMongoClient entityNodeMongoClient;
 
-    public Set<EntityNode> transformBatch(Set<EntityNode> nodes){
+    public Pair<Set<EntityNode>, Set<EntityNode>> transformBatch(Set<EntityNode> nodes){
         Map<String, EntityNode> nameToEntityNodes = new HashMap<>(nodes.size());
         nodes.forEach(node ->
             nameToEntityNodes.compute(node.getName(), (k, v) -> {
@@ -36,7 +36,12 @@ public class Transformer {
         );
         nodes = new HashSet<>(nameToEntityNodes.values());
         Pair<Set<EntityNode>, Set<EntityNode>> existsAndNonExistsPair = entityNodeMongoClient.queryExists(nodes);
-        existsAndNonExistsPair.getFirst().forEach(exist -> exist.getLinks().addAll(nameToEntityNodes.get(exist.getName()).getLinks()));
+        existsAndNonExistsPair.getFirst().forEach((e -> {
+            if(e.getLinks() == null){
+                e.setLinks(new HashSet<>());
+            }
+            e.getLinks().addAll(nameToEntityNodes.get(e.getName()).getLinks());
+        }));
         Set<EntityNode> nonRepeatEntityNodes = existsAndNonExistsPair.getSecond();
         int id = autoIncreEntityRepo.getAndSetCurrCount(nonRepeatEntityNodes.size());
         for (EntityNode node : nonRepeatEntityNodes) {
@@ -47,7 +52,7 @@ public class Transformer {
         nodes.addAll(existsAndNonExistsPair.getFirst());
         nodes.addAll(nonRepeatEntityNodes);
         setLinksUniqueIds(nodes);
-        return nodes;
+        return existsAndNonExistsPair;
     }
 
     private void setLinksUniqueIds(Set<EntityNode> entityNodes){

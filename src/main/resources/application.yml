@@ -17,5 +17,5 @@ eureka:
       defaultZone: http://localhost:9090/eureka/
 
 
-jsonSource: /Users/purchaser/Desktop/商务智能/result/result1.json
+jsonSource: /Users/purchaser/Desktop/商务智能/result/result0.json
 jsonSourceDir: /Users/purchaser/Desktop/商务智能/result/part

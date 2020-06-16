@@ -54,6 +54,10 @@ public class EntityNode {
         }
     }
 
+    public void setLinks(Set<NodeToRelation> links){
+        this.links = links;
+    }
+
     public void addLinks(Set<NodeToRelation> set){
         if(this.links == null){
             this.links = new HashSet<>();
