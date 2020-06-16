@@ -106,6 +106,7 @@ public class EntityNodeMongoClient {
     public List<EntityNode> queryBatchByNames(Collection<String> names, boolean need_id){
         Query q = new Query();
         q.addCriteria(Criteria.where("name").in(names));
+        q.fields().include("name").include("uniqueId").include("links");
         List<EntityNode> list = mongoTemplate.find(q, EntityNode.class, "EntityNode");
         if(!need_id){
             list.forEach(l -> l.set_id(null));

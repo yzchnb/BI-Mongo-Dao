@@ -36,7 +36,7 @@ public class Transformer {
         );
         nodes = new HashSet<>(nameToEntityNodes.values());
         Pair<Set<EntityNode>, Set<EntityNode>> existsAndNonExistsPair = entityNodeMongoClient.queryExists(nodes);
-
+        existsAndNonExistsPair.getFirst().forEach(exist -> exist.getLinks().addAll(nameToEntityNodes.get(exist.getName()).getLinks()));
         Set<EntityNode> nonRepeatEntityNodes = existsAndNonExistsPair.getSecond();
         int id = autoIncreEntityRepo.getAndSetCurrCount(nonRepeatEntityNodes.size());
         for (EntityNode node : nonRepeatEntityNodes) {
