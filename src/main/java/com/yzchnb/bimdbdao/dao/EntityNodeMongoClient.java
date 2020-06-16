@@ -103,17 +103,19 @@ public class EntityNodeMongoClient {
         return list;
     }
 
-    public List<EntityNode> queryBatchByNames(Collection<String> names){
+    public List<EntityNode> queryBatchByNames(Collection<String> names, boolean need_id){
         Query q = new Query();
         q.addCriteria(Criteria.where("name").in(names));
         List<EntityNode> list = mongoTemplate.find(q, EntityNode.class, "EntityNode");
-        list.forEach(l -> l.set_id(null));
+        if(!need_id){
+            list.forEach(l -> l.set_id(null));
+        }
         return list;
     }
 
     public Pair<Set<EntityNode>, Set<EntityNode>> queryExists(Set<EntityNode> nodes){
         List<String> names = nodes.stream().map(EntityNode::getName).collect(Collectors.toList());
-        Set<EntityNode> existsSet = new HashSet<>(queryBatchByNames(names));
+        Set<EntityNode> existsSet = new HashSet<>(queryBatchByNames(names, true));
         Set<String> existsNames = existsSet.stream().map(EntityNode::getName).collect(Collectors.toSet());
         Set<EntityNode> nonExistsSet = nodes.stream().filter(n -> !existsNames.contains(n.getName())).collect(Collectors.toSet());
         return new Pair<>(existsSet, nonExistsSet);

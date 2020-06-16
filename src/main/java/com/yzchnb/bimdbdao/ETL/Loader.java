@@ -25,33 +25,36 @@ public class Loader {
         if(nodes.size() == 0){
             return;
         }
-        if(es == null || es.isTerminated() || es.isShutdown()){
-            initES();
-        }
-        List<Set<EntityNode>> batches = new ArrayList<>(batch + 1);
-        Iterator<EntityNode> iter = nodes.iterator();
-        for (int i = 0; i < nodes.size(); i++) {
-            int batchIndex = i / (nodes.size() / batch);
-            if(batchIndex == batches.size()){
-                batches.add(new HashSet<>(nodes.size() / batch));
-            }
-            batches.get(batchIndex).add(iter.next());
-        }
-        for (Set<EntityNode> entityNodes : batches) {
-            es.submit(() -> {
-                entityNodeRepo.saveAll(entityNodes);
-            });
-        }
-        es.shutdown();
-        while(!es.isTerminated()){
-            try{
-                System.out.println("Waiting for saveAll finished");
-                Thread.sleep(1000);
-            }catch (InterruptedException e){
-                System.out.println("Interrupted!");
-                return;
-            }
-        }
+        List<EntityNode> res = entityNodeRepo.saveAll(nodes);
+        System.out.println("Loader get " + nodes.size() + " nodes, Saved " + res.size());
+//        if(es == null || es.isTerminated() || es.isShutdown()){
+//            initES();
+//        }
+//        List<Set<EntityNode>> batches = new ArrayList<>(batch + 1);
+//        Iterator<EntityNode> iter = nodes.iterator();
+//        for (int i = 0; i < nodes.size(); i++) {
+//            int batchIndex = i / (nodes.size() / batch);
+//            if(batchIndex == batches.size()){
+//                batches.add(new HashSet<>(nodes.size() / batch));
+//            }
+//            batches.get(batchIndex).add(iter.next());
+//        }
+//        for (Set<EntityNode> entityNodes : batches) {
+//            es.submit(() -> {
+//                List<EntityNode> res = entityNodeRepo.saveAll(entityNodes);
+//                System.out.println(res);
+//            });
+//        }
+//        es.shutdown();
+//        try{
+//            while(!es.awaitTermination(1, TimeUnit.SECONDS)) {
+//                System.out.println("Waiting for saveAll finished");
+//            }
+//        }catch (InterruptedException e){
+//            System.out.println("Interrupted!");
+//            return;
+//        }
+
         
     }
 
