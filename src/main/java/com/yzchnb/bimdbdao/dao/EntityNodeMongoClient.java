@@ -189,6 +189,7 @@ public class EntityNodeMongoClient {
 
         operations.add(Aggregation.group("uniqueId")
                 .first("uniqueId").as("uniqueId")
+                .first("name").as("name")
                 .push("links").as("links"));
         Aggregation aggregation = Aggregation.newAggregation(operations);
         AggregationResults<EntityNode> results = mongoTemplate.aggregate(aggregation, "EntityNode", EntityNode.class);
