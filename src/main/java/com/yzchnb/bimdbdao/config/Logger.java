@@ -17,7 +17,7 @@ public class Logger {
     @PostConstruct
     public void initLogger(){
         try{
-            String fileName = "Log " + LocalDateTime.now().toString() + ".log";
+            String fileName = "Log " + System.currentTimeMillis() + ".log";
             bf = new BufferedWriter(new FileWriter(fileName));
         }catch (Exception e){
             System.out.println("Failed init Logger");
