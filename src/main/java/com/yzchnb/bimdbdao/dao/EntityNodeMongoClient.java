@@ -179,7 +179,7 @@ public class EntityNodeMongoClient {
 
 
     public EntityNode getSingleLinksByIdPageable(Integer id, int startFrom, int limit){
-        List<AggregationOperation> operations = new ArrayList<>();
+        List<AggregationOperation> operations = new ArrayList<>(6);
         operations.add(Aggregation.match(Criteria.where("uniqueId").is(id)));
         operations.add(Aggregation.unwind("links"));
         Sort.by(Sort.Direction.ASC, "links.uniqueId");
@@ -197,6 +197,20 @@ public class EntityNodeMongoClient {
             return list.get(0);
         }
         return null;
+    }
+
+    public int getSingleLinksCount(Integer id){
+        List<AggregationOperation> operations = new ArrayList<>();
+        operations.add(Aggregation.match(Criteria.where("uniqueId").is(id)));
+        operations.add(Aggregation.unwind("links"));
+        operations.add(Aggregation.count().as("linksCount"));
+        Aggregation aggregation = Aggregation.newAggregation(operations);
+        AggregationResults<Map> results = mongoTemplate.aggregate(aggregation, "EntityNode", Map.class);
+        List<Map> list = results.getMappedResults();
+        if(list.size() == 1){
+            return (Integer)list.get(0).get("linksCount");
+        }
+        return 0;
     }
 
 }

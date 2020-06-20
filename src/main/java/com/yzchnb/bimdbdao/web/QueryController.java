@@ -69,6 +69,16 @@ public class QueryController {
         return entityNodeMongoClient.getSingleLinksByIdPageable(uniqueId, startFrom, limit);
     }
 
+    @GetMapping("/getSingleLinksCountByName/{nodeName}")
+    public Integer getSingleLinksCountByName(@PathVariable("nodeName")String nodeName){
+        Integer id = getEntityIdByName(nodeName);
+        return entityNodeMongoClient.getSingleLinksCount(id);
+    }
+
+    @GetMapping("/getSingleLinksCountById/{id}")
+    public Integer getSingleLinksCountById(@PathVariable("id")Integer id){
+        return entityNodeMongoClient.getSingleLinksCount(id);
+    }
 
 
     @GetMapping("/getMaxUniqueId")
