@@ -101,7 +101,7 @@ public class EntityNodeMongoClient {
     public List<EntityNode> queryBatchByIds(Collection<Integer> ids){
         Query q = new Query();
         q.addCriteria(Criteria.where("uniqueId").in(ids));
-        q.fields().include("name").exclude("links").exclude("_id");
+        q.fields().exclude("links").exclude("_id");
         List<EntityNode> list = mongoTemplate.find(q, EntityNode.class, "EntityNode");
         list.forEach(l -> l.set_id(null));
         return list;
