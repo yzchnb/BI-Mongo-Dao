@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Component
@@ -55,6 +57,9 @@ public class EntityNodeMongoClient {
 
     @Resource
     private MongoTemplate mongoTemplate;
+
+    @Resource
+    private EntityNodeRepo repo;
 
     public List<EntityNode> getBatch(int startUniqueId, int size){
         Query query = new Query();
@@ -212,6 +217,63 @@ public class EntityNodeMongoClient {
             return (Integer)list.get(0).get("linksCount");
         }
         return 0;
+    }
+
+    public Map<String, Double> getSims(Integer id1, Integer id2){
+        System.out.println("获取node1");
+        EntityNode node1 = repo.findOneByUniqueId(id1);
+        System.out.println("获取node2");
+        EntityNode node2 = repo.findOneByUniqueId(id2);
+        Map<String, Double> sims = new HashMap<>();
+        sims.put("Jaccard", jaccardSim(node1, node2));
+        sims.put("Cosine", cosineSim(node1, node2));
+        return sims;
+    }
+
+    private Double jaccardSim(EntityNode node1, EntityNode node2){
+        Set<Integer> s1 = node1.getLinks().stream().map(NodeToRelation::getUniqueId).collect(Collectors.toSet());
+        Set<Integer> s2 = node2.getLinks().stream().map(NodeToRelation::getUniqueId).collect(Collectors.toSet());
+        Set<Integer> intersected = new HashSet<>(s1);
+        intersected.retainAll(s2);
+        int intersectedCount = intersected.size();
+        intersected = null;
+        s1.addAll(s2);
+        int unionCount = s1.size();
+        s1 = null; s2 = null;
+        Double jsim = intersectedCount * 1. / unionCount;
+        return jsim;
+    }
+
+    private Double cosineSim(EntityNode node1, EntityNode node2){
+        Map<String, Integer> bits = new HashMap<>(128);
+        EntityNode[] nodes = {node1, node2};
+        AtomicInteger index = new AtomicInteger(0);
+        Arrays.stream(nodes).forEach(n -> n.getLinks().forEach(ntr -> bits.computeIfAbsent(ntr.getNode() + "___connects___" + ntr.getRelation(), (k) -> index.getAndIncrement())));
+        int[] vector1 = new int[bits.size()];
+        int[] vector2 = new int[bits.size()];
+        node1.getLinks().forEach(ntr -> {
+            String b = ntr.getNode() + "___connects___" + ntr.getRelation();
+            vector1[bits.get(b)]++;
+        });
+        node2.getLinks().forEach(ntr -> {
+            String b = ntr.getNode() + "___connects___" + ntr.getRelation();
+            vector2[bits.get(b)]++;
+        });
+        //cal consine similarity
+        double non = 0.;
+        for (int i = 0; i < bits.size(); i++) {
+            non += vector1[i] * vector2[i];
+        }
+        double den1 = 0., den2 = 0.;
+        for (int i : vector1) {
+            den1 += Math.pow(i, 2);
+        }
+        for (int i : vector2) {
+            den2 += Math.pow(i, 2);
+        }
+        double den = Math.sqrt(den1 * den2);
+        Double sim = non / den;
+        return sim;
     }
 
 }

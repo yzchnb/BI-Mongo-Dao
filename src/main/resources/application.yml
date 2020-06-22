@@ -14,7 +14,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
     serviceUrl:
-      defaultZone: http://localhost:9090/eureka/
+      defaultZone: yzchnb.xicp.io:9090/eureka/
 
 
 jsonSource: /Users/purchaser/Desktop/商务智能/result/result0.json

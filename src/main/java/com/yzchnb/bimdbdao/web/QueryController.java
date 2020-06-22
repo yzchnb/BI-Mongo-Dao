@@ -80,6 +80,14 @@ public class QueryController {
         return entityNodeMongoClient.getSingleLinksCount(id);
     }
 
+    @GetMapping("/getSim/{node1}/{node2}")
+    public Map<String, Double> getSim(@PathVariable("node1") Integer id1, @PathVariable("node2")Integer id2){
+        if(id1 == null || id2 == null){
+            return null;
+        }
+        return entityNodeMongoClient.getSims(id1, id2);
+    }
+
 
     @GetMapping("/getMaxUniqueId")
     public Integer getMaxUniqueId(){
